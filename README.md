@@ -1,0 +1,2 @@
+# gomad
+For golang modules
