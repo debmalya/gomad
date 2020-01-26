@@ -11,8 +11,9 @@ import (
 )
 
 var (
+	email = "jon@labstack.com"
 	mockDB = map[string]*User{
-		"jon@labstack.com": &User{"Jon Snow", "jon@labstack.com"},
+		"jon@labstack.com": &User{"Jon Snow", email},
 	}
 	userJSON = `{"name":"Jon Snow","email":"jon@labstack.com"}`
 )

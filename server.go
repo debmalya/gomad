@@ -36,6 +36,12 @@ func main() {
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
 
+	//CORS
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{echo.GET, echo.HEAD, echo.PUT, echo.PATCH, echo.POST, echo.DELETE},
+	}))
+
 	// Group level middleware
 	g := e.Group("/admin")
 	g.Use(middleware.BasicAuth(func(username, password string, c echo.Context) (bool, error) {
