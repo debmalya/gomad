@@ -5,13 +5,10 @@ import (
 	"fmt"
 	"net/http"
 
-	echo "github.com/labstack/echo/v4"
 	"github.com/debmalya/gomad/controllers/interfaces"
 	model "github.com/debmalya/gomad/models"
-	
+	echo "github.com/labstack/echo/v4"
 )
-
-
 
 // AzureController struct
 type GitController struct {
@@ -19,12 +16,13 @@ type GitController struct {
 }
 
 func (a *GitController) GetGitHubJobs(c echo.Context) error {
-    skill := c.Param("skill")
-    pageNo := c.Param("pageNo")
-    return c.JSON(http.StatusOK, GetGitHubJobs(skill,pageNo))
+	skill := c.Param("skill")
+	pageNo := c.Param("pageNo")
+	return c.JSON(http.StatusOK, GetGitHubJobs(skill, pageNo))
 }
 
-func GetGitHubJobs(skill string, pageNo string) []model.Jobs {
+// GetGitHubJobs get jobs specific to skill and page number.
+func GetGitHubJobs(skill string, pageNo string) model.Jobs {
 	// Build the request
 	url := fmt.Sprintf("https://jobs.github.com/positions.json?description=%s&page=%s", skill, pageNo)
 	req, err := http.NewRequest("GET", url, nil)
@@ -45,7 +43,7 @@ func GetGitHubJobs(skill string, pageNo string) []model.Jobs {
 	defer resp.Body.Close()
 
 	// Fill the data with the data from the JSON
-	results := []model.Jobs{}
+	results := model.Jobs{}
 
 	// Use json.Decode for reading streams of JSON data
 	if err := json.NewDecoder(resp.Body).Decode(&results); err != nil {
@@ -54,5 +52,3 @@ func GetGitHubJobs(skill string, pageNo string) []model.Jobs {
 
 	return results
 }
-
-
