@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"io"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/debmalya/gomad/log"
+	"github.com/debmalya/gomad/router"
 )
 
+/*
 type User struct {
 	Name  string `json:"name" xml:"name" form:"name" query:"name"`
 	Email string `json:"email" xml:"email" form:"email" query:"email"`
@@ -110,4 +117,62 @@ func save(c echo.Context) error {
 	}
 
 	return c.HTML(http.StatusOK, "<b>Thank you! "+name+"</b>")
+}
+*/
+
+// Setup echo
+func SetupEcho() *echo.Echo {
+	e := echo.New()
+	defer e.Close()
+	e.Pre(middleware.RemoveTrailingSlash())
+
+	e.HideBanner = true
+
+	e.Use(middleware.Recover())
+	return e
+}
+
+// main start application
+func main() {
+
+	log.Info("Applicaton starting")
+	e := SetupEcho()
+	router.InitRoutes(e)
+
+	s := SetupServer(e)
+	gracefulShutdown(s, 5*time.Second)
+}
+
+// Setup server
+func SetupServer(e *echo.Echo) *http.Server {
+	s := &http.Server{Addr: "localhost:1971", Handler: e}
+	done := make(chan bool)
+	go func() {
+		log.Info("Server exit:", s.ListenAndServe())
+		done <- true
+	}()
+	return s
+}
+
+// Graceful shutdown of server when receive SIGTERM signal
+func gracefulShutdown(hs *http.Server, timeout time.Duration) {
+
+	stop := make(chan os.Signal, 1)
+
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	<-stop
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	log.Infof("\nShutdown with timeout: %s\n", timeout)
+
+	if err := hs.Shutdown(ctx); err != nil {
+		log.Errorf("Error: %v\n", err)
+	} else {
+		//repositories.Close()
+		//mq.Disconnect()
+		log.Infof("Server stopped")
+	}
 }
